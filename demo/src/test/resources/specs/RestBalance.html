@@ -1,0 +1,34 @@
+<html xmlns:e="http://exam.extension.io" xmlns:cc="http://www.concordion.org/2007/concordion" lang="en">
+<body>
+<h1>Balance request</h1>
+<e:summary/>
+
+<e:before-each>
+    <e:given>
+        <e:set var="id" value="1"/>
+        <e:db-execute dir="/data/rest-api/db/" datasets="account-1.xml"/>
+    </e:given>
+</e:before-each>
+
+<e:example name="No account">
+    <e:then>
+        <e:get url="/balance/999">
+            <e:case>
+                <e:expected/>
+            </e:case>
+        </e:get>
+    </e:then>
+</e:example>
+
+<e:example name="Existed account">
+    <e:then>
+        <e:get url="/balance/{{id}}">
+            <e:case>
+                <e:expected>{ "user": {{id}}, "balance": 100.0, "currency": "USD" }</e:expected>
+            </e:case>
+        </e:get>
+    </e:then>
+</e:example>
+
+</body>
+</html>

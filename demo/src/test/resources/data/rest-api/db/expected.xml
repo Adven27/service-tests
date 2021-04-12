@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dataset>
+    <account user_id="{{id}}" balance="110.00" currency="USD"/>
+    <account user_id="999" balance="1000.00" currency="USD"/>
+</dataset>

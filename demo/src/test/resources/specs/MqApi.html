@@ -1,0 +1,55 @@
+<html xmlns:e="http://exam.extension.io" xmlns:cc="http://www.concordion.org/2007/concordion" lang="en">
+<body>
+<h1>Receiving deposit events</h1>
+<e:summary/>
+
+<p>If it's first deposit for user - new account should be created:</p>
+<e:example name="First deposit">
+    <e:given>
+        Out queue is empty:
+        <e:mq-purge name="out"/>
+        There is no user account:
+        <e:db-set table="account"/>
+    </e:given>
+    <e:when>
+        <e:mq-send name="in">{"user": 1, "amount": "100.0", "currency": "USD" }</e:mq-send>
+    </e:when>
+    <e:then>
+        user account created:
+        <e:db-check table="account" cols="user_id, balance, currency" awaitAtMostSec="4">
+            <e:row>!{number}>>userId, 100, USD</e:row>
+        </e:db-check>
+        message processed:
+        <e:mq-check name="in"/>
+        user creation event fired:
+        <e:mq-check name="out" from="/data/mq-api/expected.xml" verifyAs="xml"/>
+    </e:then>
+</e:example>
+
+<p>If it's <b>NOT</b> first deposit for user - new account should be created:</p>
+<e:example name="Not first deposit">
+    <e:given>
+        Out queue is empty:
+        <e:mq-purge name="out"/>
+        There is existed user account:
+        <e:db-set table="account" cols="user_id, balance, currency">
+            <e:row>1, 10, USD</e:row>
+        </e:db-set>
+    </e:given>
+    <e:when>
+        <e:mq-send name="in">{"user": 1, "amount": "100.0", "currency": "USD" }</e:mq-send>
+    </e:when>
+    <e:then>
+        user account balance increased:
+        <e:db-check table="account" cols="user_id, balance, currency" awaitAtMostSec="4">
+            <e:row>!{number}>>userId, 110, USD</e:row>
+        </e:db-check>
+        message processed:
+        <e:mq-check name="in"/>
+        user creation event NOT fired:
+        <e:mq-check name="out"/>
+    </e:then>
+</e:example>
+
+</body>
+</html>

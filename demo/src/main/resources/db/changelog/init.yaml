@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: init
+      author: me
+      changes:
+        - createTable:
+            tableName: account
+            columns:
+              - column:
+                  name: user_id
+                  type: bigint
+              - column:
+                  name: balance
+                  type: decimal(13,2)
+              - column:
+                  name: currency
+                  type: varchar(3)
+              - column:
+                  name: version
+                  type: bigint
+                  constraints:
+                    nullable: false
+                  defaultValue: 0
+        - addPrimaryKey:
+            columnNames: user_id, currency
+            constraintName: acc_pkey
+            tableName: account

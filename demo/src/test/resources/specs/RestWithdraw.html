@@ -1,0 +1,119 @@
+<html xmlns:e="http://exam.extension.io" xmlns:cc="http://www.concordion.org/2007/concordion" lang="en">
+<body>
+<h1>Withdraw request</h1>
+<e:summary/>
+
+<p>If account doesn't exist should return <code>Insufficient funds</code> error:</p>
+<e:example name="First withdraw">
+    <e:given>
+        <e:db-set table="account"/>
+    </e:given>
+    <e:then>
+        <e:post url="/withdraw">
+            <e:case>
+                <e:body>{"user": 1, "amount": "100.0", "currency": "USD" }</e:body>
+                <e:expected from="/data/rest-api/ws/error-insufficient-funds.json" statusCode="400"/>
+                <e:check>
+                    <e:db-check table="account"/>
+                </e:check>
+            </e:case>
+        </e:post>
+    </e:then>
+</e:example>
+
+<p>If account exists should decrease balance:</p>
+<e:example name="Not first withdraw">
+    <e:given>
+        <e:set var="reqAmount" value="9.0"/>
+        There is existed user account <code cc:set="#id">1</code>:
+        <e:db-execute dir="/data/rest-api/db/" datasets="account-1.xml"/>
+    </e:given>
+    <e:then>
+        <e:post url="/withdraw">
+            <e:case desc="has more than enough money" >
+                <e:body from="/data/rest-api/ws/request.json"/>
+                <e:expected>{ "user": {{id}}, "balance": 1.0, "currency": "USD" }</e:expected>
+                <e:check>
+                    Balance should be decreased by <code cc:echo="#reqAmount"/>:
+                    <e:db-check table="account" cols="user_id, balance, currency">
+                        <e:row>{{id}}, 1.0, USD</e:row>
+                    </e:db-check>
+                </e:check>
+            </e:case>
+            <e:case desc="has insufficient money" >
+                <e:body from="/data/rest-api/ws/request.json"/>
+                <e:expected statusCode="400" from="/data/rest-api/ws/error-insufficient-funds.json"/>
+                <e:check>
+                    Balance should not change:
+                    <e:db-check table="account" cols="user_id, balance, currency">
+                        <e:row>{{id}}, 1.0, USD</e:row>
+                    </e:db-check>
+                </e:check>
+            </e:case>
+        </e:post>
+    </e:then>
+</e:example>
+
+<e:example name="Not valid requests">
+    <e:given>
+        There is existed user account <code cc:set="#id">1</code>:
+        <e:db-execute dir="/data/rest-api/db/" datasets="account-1.xml"/>
+    </e:given>
+    <e:then>
+        <e:post url="/withdraw">
+            <e:case desc="empty body">
+                <e:body/>
+                <e:expected statusCode="400">
+                    {
+                    "message": "Message not readable",
+                    "details": "Required request body is missing: public com.example.demo.WalletResponse com.example.demo.WalletController.withdraw(com.example.demo.WalletRequest)"
+                    }
+                </e:expected>
+            </e:case>
+            <e:case desc="no fields">
+                <e:body>{}</e:body>
+                <e:expected statusCode="400">
+                    {
+                    "message": "Message not readable",
+                    "details": "JSON parse error: Instantiation of [simple type, class com.example.demo.WalletRequest] value failed for JSON property amount due to missing (therefore NULL) value for creator parameter amount which is a non-nullable type; nested exception is com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException: Instantiation of [simple type, class com.example.demo.WalletRequest] value failed for JSON property amount due to missing (therefore NULL) value for creator parameter amount which is a non-nullable type\n at [Source: (PushbackInputStream); line: 1, column: 2] (through reference chain: com.example.demo.WalletRequest[\"amount\"])"
+                    }
+                </e:expected>
+            </e:case>
+            <e:case desc="negative amount">
+                <e:body>{ "user": {{id}}, "amount": "-100.0", "currency": "USD" }</e:body>
+                <e:expected statusCode="400">{ "message": "Negative amount", "details": "" }</e:expected>
+            </e:case>
+            <e:check>
+                Balance should not change:
+                <e:db-verify dir="/data/rest-api/db/" datasets="account-1.xml"/>
+            </e:check>
+        </e:post>
+    </e:then>
+</e:example>
+
+<e:example name="Not valid requests - 2">
+    <e:given>
+        There is existed user account <code cc:set="#id">1</code>:
+        <e:db-execute dir="/data/rest-api/db/" datasets="account-1.xml"/>
+    </e:given>
+    <e:then>
+        <e:post url="/withdraw">
+            <e:case>
+                <e:body>{{body}}</e:body>
+                <e:expected from="/data/rest-api/ws/error-template.json" statusCode="400"/>
+                <e:where vars="body, message, details" separator="|">
+                    <e:vals desc="empty body">                                                         | Message not readable | Required request body is missing: public com.example.demo.WalletResponse com.example.demo.WalletController.withdraw(com.example.demo.WalletRequest)</e:vals>
+                    <e:vals desc="no fields">                                                        {}| Message not readable | JSON parse error: Instantiation of [simple type, class com.example.demo.WalletRequest] value failed for JSON property amount due to missing (therefore NULL) value for creator parameter amount which is a non-nullable type; nested exception is com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException: Instantiation of [simple type, class com.example.demo.WalletRequest] value failed for JSON property amount due to missing (therefore NULL) value for creator parameter amount which is a non-nullable type\n at [Source: (PushbackInputStream); line: 1, column: 2] (through reference chain: com.example.demo.WalletRequest[\"amount\"])</e:vals>
+                    <e:vals desc="negative amount">{ "user": 1, "amount": "-100.0", "currency": "USD" }| Negative amount      | ''</e:vals>
+                </e:where>
+            </e:case>
+            <e:check>
+                Balance should not change:
+                <e:db-verify dir="/data/rest-api/db/" datasets="account-1.xml"/>
+            </e:check>
+        </e:post>
+    </e:then>
+</e:example>
+
+</body>
+</html>

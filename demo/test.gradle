@@ -1,0 +1,63 @@
+apply plugin: "jacoco"
+
+ext {
+    examVersion = "5.0.0"
+    envVersion = "2.0.0"
+}
+
+dependencies {
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation "io.github.adven27:env-db-postgresql:$envVersion"
+    testImplementation "io.github.adven27:env-mq-rabbit:$envVersion"
+    testImplementation "io.github.adven27:exam-ms:$examVersion"
+    testImplementation "io.github.adven27:exam-mq-rabbit:$examVersion"
+    testImplementation 'org.assertj:assertj-core:3.16.1'
+}
+
+test {
+    systemProperty 'concordion.output.dir', "$reporting.baseDir/specs"
+    testLogging.showStandardStreams = true
+    testLogging.exceptionFormat = 'full'
+    testLogging.events "passed", "skipped", "failed"
+    finalizedBy jacocoTestReport
+}
+
+task envRun(type: JavaExec) {
+    group = "Execution"
+    description = "Run service test environment"
+
+    classpath = sourceSets.test.runtimeClasspath
+    main = "io.github.adven27.env.core.EnvStarter"
+    args 'specs.SomeEnvironment'
+    standardInput = System.in
+    systemProperty 'SPECS_ENV_START', true
+    systemProperty 'SPECS_ENV_FIXED', true
+}
+
+task specsBootRun(type: Test) {
+    doFirst { logger.warn('Starting service and run specs against already existed enviroment:') }
+    include '**/Specs.class'
+    systemProperty 'SPECS_ENV_START', false
+    systemProperty 'SPECS_ENV_FIXED', true
+}
+
+bootRun {
+    systemProperty "spring.profiles.active", "qa"
+}
+
+task specsRun(type: Test) {
+    doFirst { logger.warn('Running specs against already running service and enviroment:') }
+    include '**/Specs.class'
+    testLogging.showStandardStreams = true
+    testLogging.exceptionFormat = 'full'
+    testLogging.events "passed", "skipped", "failed"
+    systemProperty 'SPECS_ENV_START', false
+    systemProperty 'SPECS_ENV_FIXED', true
+    systemProperty 'SPECS_SUT_START', false
+}
+
+jacocoTestReport {
+    reports {
+        html.enabled true
+    }
+}

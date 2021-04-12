@@ -1,0 +1,58 @@
+<html xmlns:e="http://exam.extension.io" xmlns:cc="http://www.concordion.org/2007/concordion" lang="en">
+<body>
+<h1>Deposit request</h1>
+<e:summary/>
+
+<e:example name="First deposit">
+    <e:given>
+        <e:db-set table="account"/>
+    </e:given>
+    <e:then>
+        <e:post url="/deposit">
+            <e:case>
+                <e:body>{"user": 1, "amount": "100.0", "currency": "USD" }</e:body>
+                <e:expected>{ "user": 1, "balance": 100.0, "currency": "USD" }</e:expected>
+                <e:check>
+                    <e:db-check table="account" cols="user_id, balance, currency">
+                        <e:row>!{number}>>userId, 100, USD</e:row>
+                    </e:db-check>
+                    <e:mq-check name="out" verifyAs="xml">
+                        <![CDATA[
+                        <event>
+                            <type>USER_CREATED</type>
+                            <details>
+                                <id>{{userId}}</id>
+                            </details>
+                        </event>
+                        ]]>
+                    </e:mq-check>
+                </e:check>
+            </e:case>
+        </e:post>
+    </e:then>
+</e:example>
+
+<e:example name="Not first deposit">
+    <e:given>
+        <e:set var="reqAmount" value="100.0"/>
+        There is existed user account <code cc:set="#id">1</code>:
+        <e:db-execute dir="/data/rest-api/db/" datasets="account-1.xml, account-2.xml"/>
+    </e:given>
+    <e:then>
+        <e:post url="/deposit">
+            <e:case>
+                <e:body from="/data/rest-api/ws/request.json"/>
+                <e:expected from="/data/rest-api/ws/expected.json"/>
+                <e:check>
+                    Balance should be increased by <code cc:echo="#reqAmount"/>:
+                    <e:db-verify dir="/data/rest-api/db/" datasets="expected.xml"/>
+                    And no events:
+                    <e:mq-check name="out"/>
+                </e:check>
+            </e:case>
+        </e:post>
+    </e:then>
+</e:example>
+
+</body>
+</html>

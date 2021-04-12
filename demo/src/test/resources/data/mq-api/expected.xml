@@ -1,0 +1,6 @@
+<event>
+    <type>USER_CREATED</type>
+    <details>
+        <id>{{userId}}</id>
+    </details>
+</event>
