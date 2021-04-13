@@ -1,13 +1,10 @@
 package com.example.demo
 
-import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import org.springframework.http.HttpStatus.BAD_REQUEST
-import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.OK
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -16,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import java.math.BigDecimal
-
 
 @Controller
 class WalletController(val walletService: WalletService) {
@@ -55,17 +50,9 @@ class RestExceptionHandler {
     fun handleInsufficientFunds(ex: WalletService.InsufficientFunds): ResponseEntity<Error> =
         ResponseEntity(Error("Insufficient funds", ex.message ?: ""), BAD_REQUEST)
 
-    @ExceptionHandler(value = [(MissingKotlinParameterException::class)])
-    fun handleMissingParameter(ex: MissingKotlinParameterException): ResponseEntity<Error> =
-        ResponseEntity(Error("Missing parameter ${ex.parameter}", ex.message ?: ""), BAD_REQUEST)
-
     @ExceptionHandler(value = [(HttpMessageNotReadableException::class)])
     fun handleHttpMessageNotReadable(ex: HttpMessageNotReadableException): ResponseEntity<Error> =
         ResponseEntity(Error("Message not readable", ex.message ?: ""), BAD_REQUEST)
-
-    @ExceptionHandler(value = [(Exception::class)])
-    fun handleException(ex: Exception): ResponseEntity<Error> =
-        ResponseEntity(Error("Internal server error", ex.message ?: ""), INTERNAL_SERVER_ERROR)
 
     data class Error(val message: String, val details: String)
 }

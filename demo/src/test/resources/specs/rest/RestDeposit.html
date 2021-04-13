@@ -3,7 +3,7 @@
 <h1>Deposit request</h1>
 <e:summary/>
 
-<e:example name="First deposit">
+<e:example name="Deposit: first deposit">
     <e:given>
         <e:db-set table="account"/>
     </e:given>
@@ -32,7 +32,9 @@
     </e:then>
 </e:example>
 
-<e:example name="Not first deposit">
+<hr/>
+
+<e:example name="Deposit: not first deposit">
     <e:given>
         <e:set var="reqAmount" value="100.0"/>
         There is existed user account <code cc:set="#id">1</code>:

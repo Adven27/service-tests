@@ -4,7 +4,7 @@
 <e:summary/>
 
 <p>If account doesn't exist should return <code>Insufficient funds</code> error:</p>
-<e:example name="First withdraw">
+<e:example name="Withdraw: First withdraw">
     <e:given>
         <e:db-set table="account"/>
     </e:given>
@@ -22,7 +22,7 @@
 </e:example>
 
 <p>If account exists should decrease balance:</p>
-<e:example name="Not first withdraw">
+<e:example name="Withdraw: not first withdraw">
     <e:given>
         <e:set var="reqAmount" value="9.0"/>
         There is existed user account <code cc:set="#id">1</code>:
@@ -54,7 +54,7 @@
     </e:then>
 </e:example>
 
-<e:example name="Not valid requests">
+<e:example name="Withdraw: not valid requests">
     <e:given>
         There is existed user account <code cc:set="#id">1</code>:
         <e:db-execute dir="/data/rest-api/db/" datasets="account-1.xml"/>

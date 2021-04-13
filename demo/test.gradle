@@ -1,17 +1,41 @@
-apply plugin: "jacoco"
-
 ext {
     examVersion = "5.0.0"
     envVersion = "2.0.0"
 }
 
 dependencies {
+    //region 0. Any junit dependency
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation "io.github.adven27:env-db-postgresql:$envVersion"
-    testImplementation "io.github.adven27:env-mq-rabbit:$envVersion"
+    //endregion
+
+    //region 1. Exam
     testImplementation "io.github.adven27:exam-ms:$examVersion"
     testImplementation "io.github.adven27:exam-mq-rabbit:$examVersion"
+    //endregion
+
+    //region 2. Env
+    testImplementation "io.github.adven27:env-db-postgresql:$envVersion"
+    testImplementation "io.github.adven27:env-mq-rabbit:$envVersion"
+    //endregion
+
+    //region 3. Other concordion extensions
+    testImplementation 'org.concordion:concordion-timing-extension:1.1.0'
+    testImplementation 'org.concordion:concordion-run-totals-extension:1.2.0'
+    //endregion
+
+    //region not relevant
     testImplementation 'org.assertj:assertj-core:3.16.1'
+    //to fix warnings https://stackoverflow.com/questions/56172229/java-11-issue-with-jaxb-dependencies
+    testImplementation 'io.rest-assured:xml-path:4.2.0'
+    //endregion
+}
+
+//region Jacoco and test
+apply plugin: "jacoco"
+jacocoTestReport {
+    reports {
+        html.enabled true
+    }
 }
 
 test {
@@ -21,7 +45,9 @@ test {
     testLogging.events "passed", "skipped", "failed"
     finalizedBy jacocoTestReport
 }
+//endregion
 
+//region Dev mode handy tasks
 task envRun(type: JavaExec) {
     group = "Execution"
     description = "Run service test environment"
@@ -55,9 +81,14 @@ task specsRun(type: Test) {
     systemProperty 'SPECS_ENV_FIXED', true
     systemProperty 'SPECS_SUT_START', false
 }
+//endregion
 
-jacocoTestReport {
-    reports {
-        html.enabled true
-    }
+//region Tag-like running examples
+task runOnlyRest(type: Test) {
+    systemProperty 'SPECS_RUN_ONLY', '/rest/'
 }
+
+task runOnlyWithdrawAndDeposit(type: Test) {
+    systemProperty 'SPECS_RUN_ONLY', '#Withdraw:,#Deposit:'
+}
+//endregion

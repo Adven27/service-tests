@@ -1,30 +1,41 @@
 <html xmlns:e="http://exam.extension.io" xmlns:cc="http://www.concordion.org/2007/concordion" lang="en">
 <body>
 <h1>Balance request</h1>
+<hr/>
 <e:summary/>
 
 <e:before-each>
     <e:given>
+        Given user with 2 accounts:
         <e:set var="id" value="1"/>
-        <e:db-execute dir="/data/rest-api/db/" datasets="account-1.xml"/>
+        <e:db-set table="account" cols="user_id={{id}}, *balance, *currency">
+            <e:row>10, USD</e:row>
+            <e:row>20, EUR</e:row>
+        </e:db-set>
     </e:given>
 </e:before-each>
 
+<h3>1. No account</h3>
+<p>If there is no user account - return empty balances:</p>
 <e:example name="No account">
     <e:then>
         <e:get url="/balance/999">
             <e:case>
-                <e:expected/>
+                <e:expected>{"balances":{}}</e:expected>
             </e:case>
         </e:get>
     </e:then>
 </e:example>
 
+<hr/>
+
+<h3>2. Existed account</h3>
+<p>If user account exists - return all balances:</p>
 <e:example name="Existed account">
     <e:then>
         <e:get url="/balance/{{id}}">
             <e:case>
-                <e:expected>{ "user": {{id}}, "balance": 100.0, "currency": "USD" }</e:expected>
+                <e:expected>{ "balances": { "USD": 10.00, "EUR": 20.00 } }</e:expected>
             </e:case>
         </e:get>
     </e:then>

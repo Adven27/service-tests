@@ -10,14 +10,15 @@ import io.github.adven27.concordion.extensions.exam.ws.WsPlugin
 import io.github.adven27.env.core.Environment
 import io.github.adven27.env.db.postgresql.PostgreSqlContainerSystem
 import io.github.adven27.env.mq.rabbit.RabbitContainerSystem
+import org.concordion.api.extension.Extensions
+import org.concordion.ext.runtotals.RunTotalsExtension
+import org.concordion.ext.timing.TimerExtension
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 
-class RestDeposit : Specs()
-class RestWithdraw : Specs()
-class RestBalance : Specs()
 class MqApi : Specs()
 
+@Extensions(TimerExtension::class, RunTotalsExtension::class)
 open class Specs : AbstractSpecs() {
     companion object {
         private var SUT: ConfigurableApplicationContext? = null
@@ -38,7 +39,7 @@ open class Specs : AbstractSpecs() {
                 "out" to RabbitTester(exchange = "", routingKey = "out", queue = "out", ENV.rabbitPort())
             )
         )
-    )//.runOnlyExamplesWithPathsContains("Not first withdraw")
+    ).runOnlyExamplesWithPathsContains(*System.getProperty("SPECS_RUN_ONLY", "/").split(",").toTypedArray())
 
     override fun startSut() {
         SUT = SpringApplication(DemoApplication::class.java).apply { setAdditionalProfiles("qa") }.run()
