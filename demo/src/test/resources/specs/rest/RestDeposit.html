@@ -3,6 +3,10 @@
 <h1>Deposit request</h1>
 <e:summary/>
 
+При депозите, если пользователя нет - то: <br/>
+- вернуть определенный респонс<br/>
+- создать пользователя в БД<br/>
+- кинуть событие в очередь<br/>
 <e:example name="Deposit: first deposit">
     <e:given>
         <e:db-set table="account"/>
@@ -13,9 +17,11 @@
                 <e:body>{"user": 1, "amount": "100.0", "currency": "USD" }</e:body>
                 <e:expected>{ "user": 1, "balance": 100.0, "currency": "USD" }</e:expected>
                 <e:check>
+                    Пользователь добавлен в БД:
                     <e:db-check table="account" cols="user_id, balance, currency">
                         <e:row>!{number}>>userId, 100, USD</e:row>
                     </e:db-check>
+                    В очередь кинуто событие:
                     <e:mq-check name="out" verifyAs="xml">
                         <![CDATA[
                         <event>
