@@ -1,6 +1,6 @@
 ext {
-    examVersion = "5.0.0"
-    envVersion = "2.0.0"
+    examVersion = "5.0.1"
+    envVersion = "2.1.0"
 }
 
 dependencies {

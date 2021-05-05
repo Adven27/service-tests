@@ -6,6 +6,8 @@ import io.github.adven27.concordion.extensions.exam.core.ExamExtension
 import io.github.adven27.concordion.extensions.exam.db.DbPlugin
 import io.github.adven27.concordion.extensions.exam.mq.MqPlugin
 import io.github.adven27.concordion.extensions.exam.mq.rabbit.RabbitTester
+import io.github.adven27.concordion.extensions.exam.mq.rabbit.RabbitTester.ReceiveConfig
+import io.github.adven27.concordion.extensions.exam.mq.rabbit.RabbitTester.SendConfig
 import io.github.adven27.concordion.extensions.exam.ws.WsPlugin
 import io.github.adven27.env.core.Environment
 import io.github.adven27.env.db.postgresql.PostgreSqlContainerSystem
@@ -35,8 +37,8 @@ open class Specs : AbstractSpecs() {
         ),
         MqPlugin(
             mapOf(
-                "in" to RabbitTester(exchange = "", routingKey = "in", queue = "in", ENV.rabbitPort()),
-                "out" to RabbitTester(exchange = "", routingKey = "out", queue = "out", ENV.rabbitPort())
+                "in" to RabbitTester(ENV.rabbitPort(), SendConfig("in"), ReceiveConfig("in")),
+                "out" to RabbitTester(ENV.rabbitPort(), SendConfig("out"), ReceiveConfig("out")),
             )
         )
     ).runOnlyExamplesWithPathsContains(*System.getProperty("SPECS_RUN_ONLY", "/").split(",").toTypedArray())
