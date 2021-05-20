@@ -16,6 +16,7 @@ dependencies {
     //region 2. Env
     testImplementation "io.github.adven27:env-db-postgresql:$envVersion"
     testImplementation "io.github.adven27:env-mq-rabbit:$envVersion"
+    testImplementation "io.github.adven27:env-wiremock:$envVersion"
     //endregion
 
     //region 3. Other concordion extensions

@@ -1,25 +1,35 @@
 package com.example.demo
 
-import liquibase.pro.packaged.it
 import org.springframework.amqp.core.MessageBuilder
 import org.springframework.amqp.rabbit.core.RabbitTemplate
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.context.annotation.Bean
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestTemplate
 import java.math.BigDecimal
 import java.math.BigDecimal.ZERO
 
 @SpringBootApplication
-class DemoApplication
+class DemoApplication {
+    @Bean
+    fun restTemplate() = RestTemplate()
+}
 
 fun main(args: Array<String>) {
     runApplication<DemoApplication>(*args)
 }
 
 @Service
-class WalletService(private val repo: AccountRepo, private val rabbitTemplate: RabbitTemplate) {
+class WalletService(
+    private val repo: AccountRepo,
+    private val rabbitTemplate: RabbitTemplate,
+    private val restTemplate: RestTemplate,
+    @Value("\${some-external-system.url}") val url: String
+) {
     fun deposit(user: Long, amount: BigDecimal, currency: String): Account {
         requireNotNegative(amount)
         return save(
@@ -30,6 +40,7 @@ class WalletService(private val repo: AccountRepo, private val rabbitTemplate: R
     }
 
     private fun createAccount(user: Long, currency: String, amount: BigDecimal) = Account(user, currency, amount).also {
+        restTemplate.postForObject(url, it, String::class.java)
         rabbitTemplate.send(
             "out",
             MessageBuilder //language=xml

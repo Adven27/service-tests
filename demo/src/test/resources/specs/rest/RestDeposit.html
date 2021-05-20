@@ -3,10 +3,15 @@
 <h1>Deposit request</h1>
 <e:summary/>
 
+<e:before-each>
+    <span cc:execute="resetSesInteractions()"/>
+</e:before-each>
+
 При депозите, если пользователя нет - то: <br/>
 - вернуть определенный респонс<br/>
 - создать пользователя в БД<br/>
 - кинуть событие в очередь<br/>
+- вызвать внешний REST сервис<br/>
 <e:example name="Deposit: first deposit">
     <e:given>
         <e:db-set table="account"/>
@@ -32,6 +37,18 @@
                         </event>
                         ]]>
                     </e:mq-check>
+                    Вызван внешний REST сервис <code cc:assertEquals="sesInteractionsCount()">1</code> раз:
+                    <e:json-check actual="sesResponse">
+                        {
+                        "accountId": {
+                            "currency": "USD",
+                            "userId": {{userId}}
+                        },
+                        "balance": 100.0,
+                        "currency": "USD",
+                        "user": {{userId}}
+                        }
+                    </e:json-check>
                 </e:check>
             </e:case>
         </e:post>
@@ -56,6 +73,7 @@
                     <e:db-verify dir="/data/rest-api/db/" datasets="expected.xml"/>
                     And no events:
                     <e:mq-check name="out"/>
+                    <span cc:assertTrue="sesNoInteractions()">No some-external-service interactions</span>
                 </e:check>
             </e:case>
         </e:post>
